@@ -1,41 +1,50 @@
-//This is nct15's branch
+#include <FastLED.h>
 
+//VARIABLES
+const int MAX_LEVEL = 99;
+int sequence[MAX_LEVEL];
+int your_sequence[MAX_LEVEL];
+int level = 1;
+int score = 0;
+int speedTimer = 2000; //milliseconds
+bool lost = false;
 
-/*
-  Blink
-
-  Joe
-  Turns an LED on for one second, then off for one second, repeatedly.
-
-  Most Arduinos have an on-board LED you can control. On the UNO, MEGA and ZERO
-  it is attached to digital pin 13, on MKR1000 on pin 6. LED_BUILTIN is set to
-  the correct LED pin independent of which board is used.
-  If you want to know what pin the on-board LED is connected to on your Arduino
-  model, check the Technical Specs of your board at:
-  https://www.arduino.cc/en/Main/Products
-
-  modified 8 May 2014
-  by Scott Fitzgerald
-  modified 2 Sep 2016
-  by Arturo Guadalupi
-  modified 8 Sep 2016
-  by Colby Newman
-
-  This example code is in the public domain.
-
-  https://www.arduino.cc/en/Tutorial/BuiltInExamples/Blink
-*/
-
-// the setup function runs once when you press reset or power the board
+//SETUP
 void setup() {
-  // initialize digital pin LED_BUILTIN as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
+  // put your setup code here, to run once:
 }
 
-// the loop function runs over and over again forever
+
+//LOOP
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  delay(1000);                      // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
-  delay(1000);                      // wait for a second
+  if(level == 1) {
+    generateSequence();
+  }
+
+  if(score<99 && lost==false) {
+    if(sequence[level] == 2) {          //2 = horn
+      //hornCommand()
+    } else if (sequence[level] == 3) {  //3 = signal
+      //signalCommand()
+    } else {                            //4 = turn
+      //turnCommand()
+    }
+    level++
+    score++
+    speedTimer-=10;
+  }
+  if(score == 99) {
+    //winSequence()
+  } else if (lost == true) {
+    //lostSequence()
+  }
+
+}
+
+void generateSequence() {
+  randomSeed(millis());
+
+  for(int i = 0; i<3; i++) {
+    sequence[i] = random(2, 5); // 2 = horn, 3 = signal, 4 = turn
+  }
 }
