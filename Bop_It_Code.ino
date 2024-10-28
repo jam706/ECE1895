@@ -18,7 +18,13 @@ int level = 1;
 int score = 0;
 int speedTimer = 2000; //milliseconds
 bool lost = false;
-//const buzzerPin = 
+const int buzzerPin = 9;
+const int hornButtonPin = 0;
+const int turnSignalRightPin = 2; 
+const int turnSignalLeftPin = 1;
+bool inputRecieved = false;
+unsigned long startTime;
+bool dirRight;
 
 //SETUP
 void setup() {
@@ -27,7 +33,7 @@ void setup() {
   //lcd.begin(); // Initialize LCD
   lcd.backlight(); //Turn on the backlight
   lcd.setCursor(0, 0); //Set the cursor beginning
-  // pinMode(buzzerPin, OUTPUT); //establish buzzer pin (?)
+  pinMode(buzzerPin, OUTPUT); //establish buzzer pin
 }
 
 
@@ -69,24 +75,41 @@ void generateSequence() {
 void hornCommand() {
   lcd.print("Honk Horn!"); //display "honk horn" on screen
   hornTone(); //buzz horn command
-  delay(1000);
-  //if horn not pressed within timer, lost=true
+  startTime = millis();
+  while(!inputRecieved && millis()-startTime < speedTimer) {  //wait for user input
+    if (digitalRead(hornButtonPin) == HIGH)
+      inputRecieved = true;
+  }
+  if(!inputRecieved) { //if horn not pressed within timer, lost=true
+    lost = true;
+  }
+  inputRecieved = false;
 }
 
 
 void signalCommand() {
   lcd.print("Signal!"); //display "signal" on screen
-  randomDirection(); //randomly display right or left LED
   signalTone(); //buzz signal command
-  delay(1000);
-  //if signal not indicated within timer or wrong direction signaled, lost=true
+  randomDirection(); //randomly display right or left LED
+  startTime = millis();
+  while(!inputRecieved && millis()-startTime < speedTimer) {  //wait for user input
+    if ((digitalRead(turnSignalRightPin == HIGH && dirRight == true)) || (turnSignalLeftPin == HIGH && dirRight == false)) { //if correct input read
+      inputRecieved = true;
+    }
+    if ((digitalRead(turnSignalRightPin == HIGH && dirRight == false)) || (turnSignalLeftPin == HIGH && dirRight == true)) { //incorrect input read
+      startTime = 0; // this will make it so the user cannot try both inputs
+    }
+  }
+  if(!inputRecieved) { //if signal not set within timer (or wrong signal indicated), lost=true
+    lost = true;
+  }
+  inputRecieved = false;
 }
 
 void turnCommand() {
   lcd.print("Turn"); //display "turn" on screen
-  randomDirection(); //randomly display right or left LED
   turnTone(); //buzz turn command
-  delay(1000);
+  randomDirection(); //randomly display right or left LED
   //if wheel not turned within timer or wrong direction turned, lost=true
 }
 
@@ -94,7 +117,7 @@ void winSequence() {
   lcd.print("You Win!"); //display "you win" on screen
   winLights(); //led win sequence
   winTone(); //buzzer win sequence
-  delay(1000);
+  //delay(1000);
 
 }
 
@@ -103,7 +126,7 @@ void lostSequence() {
   lcd.print(score); //display final score on screen
   loseLights(); //led lose sequence
   loseTone(); //buzzer lose sequence
-  delay(1000);
+  //delay(1000);
 }
 
 void hornTone() {
@@ -173,16 +196,18 @@ noTone(buzzerPin);
 }
 
 void randomDirection() {
-  FasstLED.clear();
+  FastLED.clear();
   int half = random (0,2);
 
   if(half == 0) {
     for (int i = 0; i < NUM_LEDS / 2; i++) {
       leds[i] = CRGB::Blue;
+      dirRight = false;
     }
   } else {
     for (int i = NUM_LEDS / 2; i < NUM_LEDS; i++) {
       leds[i] = CRGB::Blue;
+      dirRight = true;
     }
   }
   FastLED.show();
